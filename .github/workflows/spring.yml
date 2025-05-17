@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - '*/**'
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - '*/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: gwozdziuuu/openjdk-21-ubi9-build:latest
+      options: --user root
+    steps:
+      - name: Download Repository as ZIP
+        run: curl -L -o repo.zip https://github.com/Gwozdziuuu/ShelfState/archive/refs/heads/main.zip
+
+      - name: Extract Repository ZIP with jar
+        run: jar -xf repo.zip
+
+      - name: Move Extracted Files to Working Directory
+        run: mv ShelfState-main/* .
+
+      - name: Set up cache for Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-${{ runner.os }}-
+
+      - name: Resolve and Download Dependencies for ShelfState
+        run: mvn dependency:resolve -U -pl shelf-state -am -DskipTests -Ddependency-check.skip=true -f spring/pom.xml
+
+      - name: Install and resolve all dependencies (online)
+        run: mvn install -pl shelf-state -am -DskipTests -Ddependency-check.skip=true -f spring/pom.xml
+
+      - name: Run Unit Tests for ShelfState
+        run: mvn test -pl shelf-state -am -f spring/pom.xml
+
+      - name: Package ShelfState Application (without Tests)
+        run: mvn clean package -o -pl shelf-state -am -DskipTests -f spring/pom.xml
