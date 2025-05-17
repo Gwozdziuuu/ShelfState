@@ -37,13 +37,13 @@ jobs:
           restore-keys: maven-${{ runner.os }}-
 
       - name: Resolve and Download Dependencies for ShelfState
-        run: mvn dependency:resolve -U -pl shelf-state -am -DskipTests -Ddependency-check.skip=true -f spring/pom.xml
+        run: mvn dependency:resolve -U -DskipTests -Ddependency-check.skip=true -f pom.xml
 
       - name: Install and resolve all dependencies (online)
-        run: mvn install -pl shelf-state -am -DskipTests -Ddependency-check.skip=true -f spring/pom.xml
+        run: mvn install -DskipTests -Ddependency-check.skip=true -f pom.xml
 
       - name: Run Unit Tests for ShelfState
-        run: mvn test -pl shelf-state -am -f spring/pom.xml
+        run: mvn test -am -f pom.xml
 
       - name: Package ShelfState Application (without Tests)
-        run: mvn clean package -o -pl shelf-state -am -DskipTests -f spring/pom.xml
+        run: mvn clean package -o -DskipTests -f pom.xml
